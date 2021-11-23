@@ -11,7 +11,6 @@ import (
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const lettersInt = "0123456789"
 
 func genRandomString(length int) string {
 	b := make([]byte, length)
@@ -23,23 +22,13 @@ func genRandomString(length int) string {
 	return string(b)
 }
 
-func genRandomStringInt(length int) string {
-	b := make([]byte, length)
-
-	for i := range b {
-		b[i] = lettersInt[rand.Intn(len(lettersInt))]
-	}
-
-	return string(b)
-}
 func stubAccounts() (accounts []*model.Account) {
 	for i := 0; i < 16300; i++ {
 		account := &model.Account{
-
 			Name:        genRandomString(10),
 			Address:     genRandomString(10),
-			Phonenumber: genRandomStringInt(10),
-			Balance:     genRandomStringInt(10),
+			Phonenumber: rand.Int63(),
+			Balance:     rand.Int63(),
 		}
 		accounts = append(accounts, account)
 	}
