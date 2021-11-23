@@ -37,10 +37,9 @@ func stubAccounts() (accounts []*model.Account) {
 }
 
 func InsertDB() {
-	db := database.Connection()
+	db := database.OpenDB()
 
 	log.Printf("Successfully connected to database")
-	beginDB := db.Begin()
 	accounts := stubAccounts()
 
 	valueStrings := []string{}
@@ -54,13 +53,9 @@ func InsertDB() {
 
 	}
 	stmt := fmt.Sprintf("INSERT INTO accounts (name, address,phonenumber,balance) VALUES %s", strings.Join(valueStrings, ","))
-	err := beginDB.Exec(stmt, valueArgs...).Error
+	_, err := db.Exec(stmt, valueArgs...)
 	if err != nil {
-		beginDB.Rollback()
-		fmt.Println(err)
+		log.Println(err)
 	}
-	err = beginDB.Commit().Error
-	if err != nil {
-		fmt.Println(err)
-	}
+
 }

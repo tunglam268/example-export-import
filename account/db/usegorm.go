@@ -2,11 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/jinzhu/gorm"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -16,22 +13,6 @@ var (
 	dataSourceName  = ""
 	driverNameMysql = "mysql"
 )
-
-func Open() *gorm.DB {
-	db = Connection()
-	return db
-}
-
-func Connection() *gorm.DB {
-	db, err = gorm.Open("mysql", "root:@(localhost)/account?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// db.AutoMigrate(&model.Account{})
-	fmt.Println("Connection success")
-	return db
-}
 
 func OpenDB() *sql.DB {
 
