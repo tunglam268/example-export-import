@@ -10,58 +10,21 @@ import (
 	"os"
 	"strings"
 
+	database "account.testing.csv/db"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
-	tables         = make([]string, 0)
-	dataSourceName = ""
-)
-
-const (
-	driverNameMysql = "mysql"
-
-	helpInfo = `Usage of mysqldataexport:
-  -port int
-     	the port for mysql,default:3306
-  -addr string
-    	the address for mysql,default:127.0.0.1
-  -user string
-    	the username for login mysql,default:root
-
-  -pwd 	string
-    	the password for login mysql by the username,default:
-  -db 	string
-    	the port for me to listen on,default:account
-  -tables string
-    	the tables will export data, multi tables separator by comma, default:op_log,sc_log,sys_log
-	`
+	tables = make([]string, 0)
 )
 
 func init() {
-
-	port := flag.Int("port", 3306, "the port for mysql,default:3306")
-	addr := flag.String("addr", "127.0.0.1", "the address for mysql,default:127.0.0.1")
-	user := flag.String("user", "root", "the username for login mysql,default:root")
-	pwd := flag.String("pwd", "", "the password for login mysql by the username,default:")
-	db := flag.String("db", "account", "the port for me to listen on,default:account")
 	tabs := flag.String("tables", "accounts", "the tables will export data, multi tables separator by comma, default:op_log,sc_log,sys_log")
-
-	flag.Usage = usage
-
 	flag.Parse()
-
 	tables = append(tables, strings.Split(*tabs, ",")...)
-
-	dataSourceName = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", *user, *pwd, *addr, *port, *db)
 }
 
-func usage() {
-	fmt.Fprint(os.Stderr, helpInfo)
-	flag.PrintDefaults()
-}
-
-func querySQL(db *sql.DB, table string, ch chan bool) {
+func QuerySQL(db *sql.DB, table string, ch chan bool) {
 	fmt.Println("Start processing:", table)
 	rows, err := db.Query(fmt.Sprintf("SELECT * from %s", table))
 
@@ -106,12 +69,30 @@ func querySQL(db *sql.DB, table string, ch chan bool) {
 	if err = rows.Err(); err != nil {
 		panic(err.Error())
 	}
-	writeToCSV(table+".csv", columns, totalValues)
+	WriteToCSV(table+".csv", columns, totalValues)
 	ch <- true
 }
 
+func ExportData() {
+
+	count := len(tables)
+	ch := make(chan bool, count)
+
+	db := database.OpenDB()
+	// Open doesn't open a connection. Validate DSN data:
+
+	for _, table := range tables {
+		go QuerySQL(db, table, ch)
+	}
+
+	for i := 0; i < count; i++ {
+		<-ch
+	}
+	fmt.Println("Done!")
+}
+
 //writeToCSV
-func writeToCSV(file string, columns []string, totalValues [][]string) {
+func WriteToCSV(file string, columns []string, totalValues [][]string) {
 	f, err := os.Create(file)
 	// fmt.Println(columns)
 	defer f.Close()
@@ -131,30 +112,4 @@ func writeToCSV(file string, columns []string, totalValues [][]string) {
 	}
 	w.Flush()
 	fmt.Println("Finished processing:", file)
-}
-
-func ExportData() {
-
-	count := len(tables)
-	ch := make(chan bool, count)
-
-	db, err := sql.Open(driverNameMysql, dataSourceName)
-	defer db.Close()
-	if err != nil {
-		panic(err.Error())
-	}
-	err = db.Ping()
-	if err != nil {
-		panic(err.Error())
-	}
-	// Open doesn't open a connection. Validate DSN data:
-
-	for _, table := range tables {
-		go querySQL(db, table, ch)
-	}
-
-	for i := 0; i < count; i++ {
-		<-ch
-	}
-	fmt.Println("Done!")
 }

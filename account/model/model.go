@@ -4,6 +4,6 @@ type Account struct {
 	Id          int64
 	Name        string
 	Address     string
-	Phonenumber string
-	Balance     string
+	Phonenumber int64
+	Balance     int64
 }

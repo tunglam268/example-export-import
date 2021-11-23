@@ -10,10 +10,10 @@ func Create() {
 	insert.InsertDB()
 }
 
-func WriteDB() {
+func ImportDB() {
 	importdb.ImportData()
 }
 
-func ReadDB() {
+func ExportDB() {
 	exportdb.ExportData()
 }

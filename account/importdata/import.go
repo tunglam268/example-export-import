@@ -11,18 +11,19 @@ import (
 	"sync"
 	"time"
 
+	database "account.testing.csv/db"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	TABLENAME           = ""
 	FILENAME            = ""
-	DELIMITER           = ','  // default delimiter for csv files
-	MAX_SQL_CONNECTIONS = 2000 // default max_connections of mysql is 150,
+	DELIMITER           = ',' // default delimiter for csv files
+	MAX_SQL_CONNECTIONS = 100 // default max_connections of mysql is 150,
 )
 
 // parse flags and command line arguments
-func parseSysArgs() {
+func ParseSysArgs() {
 
 	table := flag.String("accounts", TABLENAME, "Name of MySQL database table.")
 	delimiter := flag.String("d", string(DELIMITER), "Delimiter used in .csv file.")
@@ -53,7 +54,7 @@ func parseSysArgs() {
 }
 
 // inserts data into database
-func insert(id int, query string, db *sql.DB, callback chan<- int, conns *int, wg *sync.WaitGroup, args []interface{}) {
+func Insert(id int, query string, db *sql.DB, callback chan<- int, conns *int, wg *sync.WaitGroup, args []interface{}) {
 
 	// make a new statement for every insert,
 	// this is quite inefficient, but since all inserts are running concurrently,
@@ -78,7 +79,7 @@ func insert(id int, query string, db *sql.DB, callback chan<- int, conns *int, w
 }
 
 // controls termination of program and number of connections to database
-func startConnectionController(insertions, connections *int, callback <-chan int, available chan<- bool) {
+func StartConnectionController(insertions, connections *int, callback <-chan int, available chan<- bool) {
 
 	go func() {
 		for {
@@ -94,7 +95,7 @@ func startConnectionController(insertions, connections *int, callback <-chan int
 }
 
 // print status update to console every second
-func startLogger(insertions, connections *int) {
+func StartLogger(insertions, connections *int) {
 
 	go func() {
 		c := time.Tick(time.Second)
@@ -106,7 +107,7 @@ func startLogger(insertions, connections *int) {
 }
 
 // parse csv columns, create query statement
-func parseColumns(columns []string, query *string) {
+func ParseColumns(columns []string, query *string) {
 
 	*query = "INSERT INTO " + TABLENAME + " ("
 	placeholder := "VALUES ("
@@ -124,7 +125,7 @@ func parseColumns(columns []string, query *string) {
 }
 
 // convert []string to []interface{}
-func string2interface(s []string) []interface{} {
+func String2Interface(s []string) []interface{} {
 
 	i := make([]interface{}, len(s))
 	for k, v := range s {
@@ -132,9 +133,10 @@ func string2interface(s []string) []interface{} {
 	}
 	return i
 }
+
 func ImportData() {
 
-	parseSysArgs()
+	ParseSysArgs()
 
 	// --------------------------------------------------------------------------
 	// prepare buffered file reader
@@ -149,19 +151,8 @@ func ImportData() {
 	// --------------------------------------------------------------------------
 	// database connection setup
 	// --------------------------------------------------------------------------
+	db := database.OpenDB()
 
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/account")
-	if err != nil {
-		log.Fatal(err.Error())
-		return
-	}
-
-	// check database connection
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err.Error())
-		return
-	}
 	// set max idle connections
 	db.SetMaxIdleConns(MAX_SQL_CONNECTIONS)
 	defer db.Close()
@@ -182,10 +173,10 @@ func ImportData() {
 	}
 
 	// start status logger
-	startLogger(&insertions, &connections)
+	StartLogger(&insertions, &connections)
 
 	// start connection controller
-	startConnectionController(&insertions, &connections, callback, available)
+	StartConnectionController(&insertions, &connections, callback, available)
 
 	var wg sync.WaitGroup
 	id := 1
@@ -202,7 +193,7 @@ func ImportData() {
 
 		if isFirstRow {
 
-			parseColumns(record, &query)
+			ParseColumns(record, &query)
 			isFirstRow = false
 
 		} else if <-available { // wait for available database connection
@@ -210,7 +201,7 @@ func ImportData() {
 			connections += 1
 			id += 1
 			wg.Add(1)
-			go insert(id, query, db, callback, &connections, &wg, string2interface(record))
+			go Insert(id, query, db, callback, &connections, &wg, String2Interface(record))
 		}
 	}
 

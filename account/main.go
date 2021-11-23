@@ -1,9 +1,11 @@
 package main
 
-import (
-	api "account.testing.csv/api"
-)
+import "account.testing.csv/api"
 
 func main() {
-	api.ReadDB()
+	// for i := 0; i < 1; i++ {
+	// 	api.Create()
+	// }
+	//api.ExportDB()
+	api.ImportDB()
 }
