@@ -18,8 +18,10 @@ import (
 var (
 	TABLENAME           = ""
 	FILENAME            = ""
-	DELIMITER           = ',' // default delimiter for csv files
-	MAX_SQL_CONNECTIONS = 100 // default max_connections of mysql is 150,
+	DELIMITER           = ','  // default delimiter for csv files
+	MAX_SQL_CONNECTIONS = 4000 // default max_connections of mysql is 150,
+	//how to change max_connections
+	//terminal run sudo -i ,mysql , SET GLOBAL max_connections = "number_you_want";
 )
 
 // parse flags and command line arguments
