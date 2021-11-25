@@ -15,22 +15,23 @@ const batchsize int = 1000
 
 func ImportFromCSV(res http.ResponseWriter, req *http.Request) {
 	db := database.OpenGormDB()
-	start1 := time.Now()
+	startDB := time.Now()
 	var accounts = sp.LoadAccountCSV()
-	end1 := time.Since(start1)
+	endDB := time.Since(startDB)
 
-	start2 := time.Now()
+	startImport := time.Now()
 	err := db.CreateInBatches(accounts, batchsize).Error
 	if err != nil {
-		log.Println(err)
+		log.Panic(err)
 	}
-	end2 := time.Since(start2)
-	fmt.Printf("\n Time to read data from CSV file is : %v \n Time to write to DB is : %v \n", end1, end2)
+	endImport := time.Since(startImport)
+	fmt.Printf("\n Time to read data from CSV file is : %v \n Time to write to DB is : %v \n", endDB, endImport)
 	res.WriteHeader(http.StatusOK)
 }
 
 func ExportDBToCSV(res http.ResponseWriter, req *http.Request) {
 	db := database.OpenDB()
+
 	rows, err := db.Query(fmt.Sprintf("SELECT * from accounts"))
 
 	columns, err := rows.Columns()

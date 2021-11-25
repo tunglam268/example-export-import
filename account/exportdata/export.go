@@ -93,6 +93,7 @@ func ExportData() {
 
 //writeToCSV
 func WriteToCSV(file string, columns []string, totalValues [][]string) {
+
 	f, err := os.Create(file)
 	// fmt.Println(columns)
 	defer f.Close()
@@ -103,7 +104,7 @@ func WriteToCSV(file string, columns []string, totalValues [][]string) {
 	w := csv.NewWriter(f)
 	for i, row := range totalValues {
 		//First write column name + first row of data
-		if i == 0 {
+		if i == -1 {
 			w.Write(columns)
 			w.Write(row)
 		} else {
@@ -111,5 +112,5 @@ func WriteToCSV(file string, columns []string, totalValues [][]string) {
 		}
 	}
 	w.Flush()
-	fmt.Println("Finished processing:", file)
+	fmt.Println("Finished processing")
 }

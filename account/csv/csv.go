@@ -12,11 +12,15 @@ import (
 	"account.testing.csv/model"
 )
 
+var (
+	tables = make([]string, 0)
+)
+
 func LoadAccountCSV() []model.Account {
 	var acc []model.Account
 	file, err := os.Open("accounts.csv")
 	if err != nil {
-		log.Println(err)
+		log.Panic(err)
 	}
 	reader := csv.NewReader(bufio.NewReader(file))
 
@@ -34,16 +38,16 @@ func LoadAccountCSV() []model.Account {
 		balance, err := strconv.ParseInt(line[4], 0, 64)
 
 		if err != nil {
-			log.Println(err)
+			log.Panic(err)
 			os.Exit(2)
 		}
 
 		acc = append(acc, model.Account{
-			Id:          int64(id),
+			Id:          id,
 			Name:        line[1],
 			Address:     line[2],
-			Phonenumber: int64(phonenumber),
-			Balance:     int64(balance),
+			Phonenumber: phonenumber,
+			Balance:     balance,
 		})
 
 	}
@@ -60,7 +64,7 @@ func WriteToCSV(columns []string, totalValues [][]string) {
 	w := csv.NewWriter(f)
 	for i, row := range totalValues {
 		//First write column name + first row of data
-		if i == 0 {
+		if i == -1 {
 			w.Write(columns)
 			w.Write(row)
 		} else {
