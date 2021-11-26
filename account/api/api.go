@@ -8,6 +8,7 @@ import (
 	sp "account.testing.csv/csv"
 	database "account.testing.csv/db"
 	export "account.testing.csv/exportdata"
+	insert "account.testing.csv/insertdata"
 )
 
 const batchsize int = 1000
@@ -70,4 +71,8 @@ func ExportDBToCSV(res http.ResponseWriter, req *http.Request) {
 	// }
 	// sp.WriteToCSV(columns, totalValues)
 	res.WriteHeader(http.StatusOK)
+}
+
+func InsertToDB(res http.ResponseWriter, req *http.Request) {
+	insert.InsertDB()
 }
