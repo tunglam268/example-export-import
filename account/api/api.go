@@ -75,4 +75,6 @@ func ExportDBToCSV(res http.ResponseWriter, req *http.Request) {
 
 func InsertToDB(res http.ResponseWriter, req *http.Request) {
 	insert.InsertDB()
+	res.WriteHeader(http.StatusOK)
+	log.Println("Insert Success")
 }
