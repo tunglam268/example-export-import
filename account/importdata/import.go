@@ -6,7 +6,6 @@ import (
 	"flag"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -137,7 +136,7 @@ func String2Interface(s []string) []interface{} {
 	return i
 }
 
-func ImportData(res http.ResponseWriter, req *http.Request) {
+func ImportData() {
 
 	ParseSysArgs()
 
