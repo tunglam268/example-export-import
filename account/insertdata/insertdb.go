@@ -12,6 +12,8 @@ import (
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+var err error
+
 func genRandomString(length int) string {
 	b := make([]byte, length)
 
@@ -52,8 +54,20 @@ func InsertDB() {
 		valueArgs = append(valueArgs, account.Phonenumber)
 
 	}
+
+	_, err = db.Query("CREATE DATABASE IF NOT EXISTS account;")
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = db.Query("CREATE TABLE IF NOT EXISTS `account`.`accounts` (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCHAR(255) NULL ,`address` VARCHAR(255) NULL,`phonenumber` VARCHAR(255) NOT NULL ,`balance` VARCHAR(255) NOT NULL,PRIMARY KEY (`id`));")
+	if err != nil {
+		log.Println(err)
+	}
+
 	stmt := fmt.Sprintf("INSERT INTO accounts (name, address,phonenumber,balance) VALUES %s", strings.Join(valueStrings, ","))
-	_, err := db.Exec(stmt, valueArgs...)
+
+	_, err = db.Exec(stmt, valueArgs...)
 	if err != nil {
 		log.Println(err)
 	}
