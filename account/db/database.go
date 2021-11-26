@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"account.testing.csv/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -34,6 +35,9 @@ func OpenGormDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
 	log.Println("Connection was successful!!")
+
+	db.AutoMigrate(model.Account{})
 	return db
 }
